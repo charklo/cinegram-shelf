@@ -1,6 +1,9 @@
-import { AuthForm } from "@/components/auth/AuthForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 import { MovieCarousel } from "@/components/movies/MovieCarousel";
 import { MovieCard } from "@/components/movies/MovieCard";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const MOCK_WATCHED_MOVIES = [
   {
@@ -24,18 +27,28 @@ const MOCK_WATCHED_MOVIES = [
 ];
 
 const Index = () => {
-  const isAuthenticated = false; // This will be replaced with actual auth state
+  const { user, loading } = useAuth();
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <AuthForm />
-      </div>
-    );
+  if (loading) {
+    return <div>Loading...</div>;
   }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <div className="min-h-screen p-4 space-y-8">
+      <div className="flex justify-end">
+        <Button onClick={handleSignOut} variant="ghost">
+          Sign Out
+        </Button>
+      </div>
+      
       <MovieCarousel />
       
       <section>

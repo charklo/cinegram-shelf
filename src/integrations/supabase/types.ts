@@ -9,7 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      movies: {
+        Row: {
+          created_at: string
+          id: string
+          imdb_id: string
+          imdb_rating: number | null
+          overview: string | null
+          poster_url: string | null
+          release_date: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          imdb_id: string
+          imdb_rating?: number | null
+          overview?: string | null
+          poster_url?: string | null
+          release_date?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          imdb_id?: string
+          imdb_rating?: number | null
+          overview?: string | null
+          poster_url?: string | null
+          release_date?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_movies: {
+        Row: {
+          created_at: string
+          movie_id: string
+          updated_at: string
+          user_id: string
+          user_rating: number | null
+        }
+        Insert: {
+          created_at?: string
+          movie_id: string
+          updated_at?: string
+          user_id: string
+          user_rating?: number | null
+        }
+        Update: {
+          created_at?: string
+          movie_id?: string
+          updated_at?: string
+          user_id?: string
+          user_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_movies_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "movies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_movies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
