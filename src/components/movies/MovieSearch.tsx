@@ -24,12 +24,13 @@ export const MovieSearch = () => {
       if (!search) return [];
       
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+      console.log("API Key status:", apiKey ? "Present" : "Missing");
       
       if (!apiKey) {
-        console.error("TMDB API Key is not configured");
+        console.error("TMDB API Key is not configured. Please check your environment variables.");
         toast({
           title: "Erreur de configuration",
-          description: "La clé API TMDB n'est pas configurée correctement.",
+          description: "La clé API TMDB n'est pas configurée correctement. Veuillez vérifier la configuration.",
           variant: "destructive",
         });
         return [];
@@ -40,6 +41,7 @@ export const MovieSearch = () => {
           search
         )}&language=fr-FR`;
         
+        console.log("Making API request for search term:", search);
         const response = await fetch(url);
         const data = await response.json();
         
