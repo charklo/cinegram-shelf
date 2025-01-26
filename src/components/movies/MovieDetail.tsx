@@ -48,16 +48,34 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
             return;
           }
 
-          // Fetch additional movie details from TMDB
-          const response = await fetch(
-            `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits`
+          // Try to fetch French details first
+          const frResponse = await fetch(
+            `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=fr-FR`
           );
           
-          if (!response.ok) {
-            throw new Error('Failed to fetch movie details from TMDB');
+          let tmdbData;
+          
+          if (frResponse.ok) {
+            tmdbData = await frResponse.json();
+            // If overview is empty in French, fetch English version
+            if (!tmdbData.overview) {
+              const enResponse = await fetch(
+                `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
+              );
+              if (enResponse.ok) {
+                tmdbData = await enResponse.json();
+              }
+            }
+          } else {
+            // Fallback to English if French request fails
+            const enResponse = await fetch(
+              `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
+            );
+            if (!enResponse.ok) {
+              throw new Error('Failed to fetch movie details from TMDB');
+            }
+            tmdbData = await enResponse.json();
           }
-
-          const tmdbData = await response.json();
           
           // Update movie data with TMDB details
           const updatedMovie = {
