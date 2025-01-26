@@ -23,21 +23,21 @@ export const MovieSearch = () => {
     queryFn: async () => {
       if (!search) return [];
       
-      const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      console.log("API Key status:", apiKey ? "Present" : "Missing");
-      
-      if (!apiKey) {
-        console.error("TMDB API Key is not configured. Please check your environment variables.");
-        toast({
-          title: "Erreur de configuration",
-          description: "La clé API TMDB n'est pas configurée correctement. Veuillez vérifier la configuration.",
-          variant: "destructive",
-        });
-        return [];
-      }
-
       try {
-        const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(
+        const { data: { TMDB_API_KEY } } = await supabase.functions.invoke('get-tmdb-key');
+        console.log("API Key status:", TMDB_API_KEY ? "Present" : "Missing");
+        
+        if (!TMDB_API_KEY) {
+          console.error("TMDB API Key is not configured. Please check your environment variables.");
+          toast({
+            title: "Erreur de configuration",
+            description: "La clé API TMDB n'est pas configurée correctement. Veuillez vérifier la configuration.",
+            variant: "destructive",
+          });
+          return [];
+        }
+
+        const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
           search
         )}&language=fr-FR`;
         
