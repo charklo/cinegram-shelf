@@ -9,34 +9,106 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      movie_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          movie_id: string
+          rating: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          movie_id: string
+          rating?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          movie_id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movie_reviews_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "movies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movie_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movies: {
         Row: {
+          box_office: number | null
+          budget: number | null
+          country: string | null
           created_at: string
+          director: string | null
+          duration: number | null
+          genres: string[] | null
           id: string
           imdb_id: string
           imdb_rating: number | null
+          language: string | null
+          movie_cast: Json | null
           overview: string | null
           poster_url: string | null
+          production_company: string | null
           release_date: string | null
           title: string
         }
         Insert: {
+          box_office?: number | null
+          budget?: number | null
+          country?: string | null
           created_at?: string
+          director?: string | null
+          duration?: number | null
+          genres?: string[] | null
           id?: string
           imdb_id: string
           imdb_rating?: number | null
+          language?: string | null
+          movie_cast?: Json | null
           overview?: string | null
           poster_url?: string | null
+          production_company?: string | null
           release_date?: string | null
           title: string
         }
         Update: {
+          box_office?: number | null
+          budget?: number | null
+          country?: string | null
           created_at?: string
+          director?: string | null
+          duration?: number | null
+          genres?: string[] | null
           id?: string
           imdb_id?: string
           imdb_rating?: number | null
+          language?: string | null
+          movie_cast?: Json | null
           overview?: string | null
           poster_url?: string | null
+          production_company?: string | null
           release_date?: string | null
           title?: string
         }
