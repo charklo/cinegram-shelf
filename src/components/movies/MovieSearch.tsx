@@ -24,24 +24,31 @@ export const MovieSearch = () => {
       if (!search) return [];
       
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      console.log("Using API Key:", apiKey ? "Key exists" : "Key is undefined");
       
+      if (!apiKey) {
+        console.error("TMDB API Key is not configured");
+        toast({
+          title: "Erreur de configuration",
+          description: "La clé API TMDB n'est pas configurée correctement.",
+          variant: "destructive",
+        });
+        return [];
+      }
+
       try {
         const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(
           search
         )}&language=fr-FR`;
-        console.log("Making request to:", url.replace(apiKey, "API_KEY"));
         
         const response = await fetch(url);
+        const data = await response.json();
         
         if (!response.ok) {
-          const errorData = await response.json();
-          console.error("API Error:", errorData);
-          throw new Error(`Erreur lors de la recherche: ${errorData.status_message || response.statusText}`);
+          console.error("TMDB API Error:", data);
+          throw new Error(data.status_message || "Erreur lors de la recherche");
         }
-        
-        const data = await response.json();
-        console.log("Found results:", data.results?.length || 0);
+
+        console.log(`Found ${data.results?.length || 0} results for "${search}"`);
         return data.results as MovieResult[];
       } catch (error) {
         console.error("Search error:", error);
