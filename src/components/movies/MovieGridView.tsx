@@ -23,7 +23,7 @@ export const MovieGridView = ({ movies, onMovieClick, isLoading }: MovieGridView
           title={userMovie.movies.title}
           posterUrl={userMovie.movies.poster_url || "https://images.unsplash.com/photo-1485827404703-89b55fcc595e"}
           rating={userMovie.movies.imdb_rating || 0}
-          onClick={() => onMovieClick(userMovie.movie_id)}
+          onClick={() => onMovieClick(userMovie.movies.imdb_id)}
         />
       ))}
     </div>

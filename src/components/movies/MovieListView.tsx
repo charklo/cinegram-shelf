@@ -32,7 +32,7 @@ export const MovieListView = ({ movies, onMovieClick, isLoading }: MovieListView
           <TableRow
             key={userMovie.movie_id}
             className="cursor-pointer hover:bg-accent"
-            onClick={() => onMovieClick(userMovie.movie_id)}
+            onClick={() => onMovieClick(userMovie.movies.imdb_id)}
           >
             <TableCell>
               <img
