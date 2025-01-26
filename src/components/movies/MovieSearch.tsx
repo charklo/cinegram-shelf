@@ -23,24 +23,31 @@ export const MovieSearch = () => {
     queryFn: async () => {
       if (!search) return [];
       
+      const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+      console.log("Using API Key:", apiKey ? "Key exists" : "Key is undefined");
+      
       try {
-        const response = await fetch(
-          `https://api.themoviedb.org/3/search/movie?api_key=${import.meta.env.VITE_TMDB_API_KEY}&query=${encodeURIComponent(
-            search
-          )}&language=fr-FR`
-        );
+        const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(
+          search
+        )}&language=fr-FR`;
+        console.log("Making request to:", url.replace(apiKey, "API_KEY"));
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
-          throw new Error("Erreur lors de la recherche");
+          const errorData = await response.json();
+          console.error("API Error:", errorData);
+          throw new Error(`Erreur lors de la recherche: ${errorData.status_message || response.statusText}`);
         }
         
         const data = await response.json();
+        console.log("Found results:", data.results?.length || 0);
         return data.results as MovieResult[];
       } catch (error) {
         console.error("Search error:", error);
         toast({
           title: "Erreur",
-          description: "Impossible de rechercher des films. Vérifiez votre connexion.",
+          description: error instanceof Error ? error.message : "Impossible de rechercher des films. Vérifiez votre connexion.",
           variant: "destructive",
         });
         return [];
