@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [selectedMovieId, setSelectedMovieId] = useState<string | null>(null);
   const [watchedMovies, setWatchedMovies] = useState<any[]>([]);
@@ -53,7 +53,9 @@ const Index = () => {
       }
     };
 
-    fetchWatchedMovies();
+    if (user) {
+      fetchWatchedMovies();
+    }
   }, [user, toast]);
 
   const handleSignOut = async () => {
@@ -64,10 +66,16 @@ const Index = () => {
     setWatchedMovies(prev => [...prev, newUserMovie]);
   };
 
-  if (loading || loadingMovies) {
-    return <div>Loading...</div>;
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
   }
 
+  // Redirect to auth if not logged in
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
@@ -105,7 +113,11 @@ const Index = () => {
           </div>
         </div>
 
-        {viewMode === 'grid' ? (
+        {loadingMovies ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-lg">Loading your movies...</div>
+          </div>
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {watchedMovies.map((userMovie) => (
               <MovieCard
