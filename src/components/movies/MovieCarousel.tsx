@@ -2,37 +2,59 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const MOCK_MOVIES = [
-  {
-    id: 1,
-    title: "Dune: Part Two",
-    posterUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e",
-    rating: 8.5,
-  },
-  {
-    id: 2,
-    title: "Poor Things",
-    posterUrl: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
-    rating: 8.2,
-  },
-  {
-    id: 3,
-    title: "Oppenheimer",
-    posterUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
-    rating: 8.4,
-  },
-];
+interface Movie {
+  id: number;
+  title: string;
+  poster_path: string;
+  vote_average: number;
+}
 
 export const MovieCarousel = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(2);
+  const { toast } = useToast();
+
+  const { data: trendingMovies, isLoading } = useQuery({
+    queryKey: ["trendingMovies"],
+    queryFn: async () => {
+      try {
+        const { data: { TMDB_API_KEY } } = await supabase.functions.invoke('get-tmdb-key');
+        
+        if (!TMDB_API_KEY) {
+          toast({
+            title: "Erreur de configuration",
+            description: "La clé API TMDB n'est pas configurée correctement.",
+            variant: "destructive",
+          });
+          return [];
+        }
+
+        const response = await fetch(
+          `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}&language=fr-FR`
+        );
+        const data = await response.json();
+        return data.results as Movie[];
+      } catch (error) {
+        console.error("Error fetching trending movies:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer les films tendances.",
+          variant: "destructive",
+        });
+        return [];
+      }
+    },
+  });
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % MOCK_MOVIES.length);
+    setCurrentIndex((prev) => (prev + 1) % (trendingMovies?.length || 1));
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + MOCK_MOVIES.length) % MOCK_MOVIES.length);
+    setCurrentIndex((prev) => (prev - 1 + (trendingMovies?.length || 1)) % (trendingMovies?.length || 1));
   };
 
   useEffect(() => {
@@ -40,35 +62,44 @@ export const MovieCarousel = () => {
     return () => clearInterval(timer);
   }, []);
 
+  if (isLoading || !trendingMovies) {
+    return <div className="h-[400px] flex items-center justify-center">Chargement...</div>;
+  }
+
+  const getVisibleMovies = () => {
+    const movies = [...trendingMovies];
+    const visibleIndexes = [-2, -1, 0, 1, 2].map(
+      (offset) => (currentIndex + offset + movies.length) % movies.length
+    );
+    return visibleIndexes.map((index) => movies[index]);
+  };
+
   return (
-    <div className="relative w-full h-[400px] overflow-hidden rounded-lg">
-      <div
-        className="flex transition-transform duration-500 ease-out h-full"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {MOCK_MOVIES.map((movie) => (
-          <div key={movie.id} className="min-w-full h-full relative">
+    <div className="relative w-full h-[400px] overflow-hidden">
+      <div className="flex items-center justify-center h-full gap-4">
+        {getVisibleMovies().map((movie, index) => (
+          <div
+            key={movie.id}
+            className={`transition-all duration-500 ease-in-out ${
+              index === 2
+                ? "w-72 h-96 z-30 scale-110"
+                : index === 1 || index === 3
+                ? "w-56 h-80 z-20 opacity-80"
+                : "w-48 h-72 z-10 opacity-60"
+            }`}
+          >
             <img
-              src={movie.posterUrl}
+              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
               alt={movie.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-lg shadow-xl"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent">
-              <div className="absolute bottom-8 left-8">
-                <h2 className="text-4xl font-bold text-white mb-2">{movie.title}</h2>
-                <div className="flex items-center">
-                  <span className="text-yellow-400 mr-2">★</span>
-                  <span className="text-white">{movie.rating}</span>
-                </div>
-              </div>
-            </div>
           </div>
         ))}
       </div>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 z-40"
         onClick={prevSlide}
       >
         <ChevronLeft className="h-6 w-6" />
@@ -76,7 +107,7 @@ export const MovieCarousel = () => {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 z-40"
         onClick={nextSlide}
       >
         <ChevronRight className="h-6 w-6" />
