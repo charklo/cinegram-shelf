@@ -7,6 +7,7 @@ import { MovieDetail } from "@/components/movies/MovieDetail";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { AddMovieButton } from "@/components/movies/AddMovieButton";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -88,6 +89,8 @@ const Index = () => {
           onClose={() => setSelectedMovieId(null)}
         />
       )}
+
+      <AddMovieButton />
     </div>
   );
 };
