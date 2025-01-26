@@ -35,9 +35,22 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
         if (movieError) throw movieError;
         
         if (movieData) {
+          // Get TMDB API key from Edge Function
+          const { data: { TMDB_API_KEY }, error: keyError } = await supabase.functions.invoke('get-tmdb-key');
+          
+          if (keyError) {
+            console.error('Error getting TMDB API key:', keyError);
+            toast({
+              title: "Error",
+              description: "Failed to get API key",
+              variant: "destructive"
+            });
+            return;
+          }
+
           // Fetch additional movie details from TMDB
           const response = await fetch(
-            `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${import.meta.env.VITE_TMDB_API_KEY}&append_to_response=credits`
+            `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits`
           );
           
           if (!response.ok) {
