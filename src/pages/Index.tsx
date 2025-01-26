@@ -50,6 +50,10 @@ const Index = () => {
     await supabase.auth.signOut();
   };
 
+  const handleMovieAdded = (newUserMovie: any) => {
+    setWatchedMovies(prev => [...prev, newUserMovie]);
+  };
+
   if (loading || loadingMovies) {
     return <div>Loading...</div>;
   }
@@ -90,7 +94,7 @@ const Index = () => {
         />
       )}
 
-      <AddMovieButton />
+      <AddMovieButton onMovieAdded={handleMovieAdded} />
     </div>
   );
 };

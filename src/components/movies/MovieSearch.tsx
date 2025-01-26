@@ -14,7 +14,11 @@ interface MovieResult {
   poster_path: string;
 }
 
-export const MovieSearch = () => {
+interface MovieSearchProps {
+  onMovieAdded?: (newUserMovie: any) => void;
+}
+
+export const MovieSearch = ({ onMovieAdded }: MovieSearchProps) => {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
 
@@ -98,14 +102,24 @@ export const MovieSearch = () => {
       }
 
       // Add to user's watched movies
-      const { error: userMovieError } = await supabase
+      const { data: newUserMovie, error: userMovieError } = await supabase
         .from("user_movies")
         .insert({
           user_id: (await supabase.auth.getUser()).data.user?.id,
           movie_id: movieId,
-        });
+        })
+        .select(`
+          *,
+          movies (*)
+        `)
+        .single();
 
       if (userMovieError) throw userMovieError;
+
+      // Call the callback with the new user movie
+      if (onMovieAdded && newUserMovie) {
+        onMovieAdded(newUserMovie);
+      }
 
       toast({
         title: "Succès",

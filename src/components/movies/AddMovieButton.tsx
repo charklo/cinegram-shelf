@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { MovieSearch } from "./MovieSearch";
 
-export const AddMovieButton = () => {
+interface AddMovieButtonProps {
+  onMovieAdded?: (newUserMovie: any) => void;
+}
+
+export const AddMovieButton = ({ onMovieAdded }: AddMovieButtonProps) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -18,7 +22,7 @@ export const AddMovieButton = () => {
         <SheetHeader>
           <SheetTitle>Ajouter un film</SheetTitle>
         </SheetHeader>
-        <MovieSearch />
+        <MovieSearch onMovieAdded={onMovieAdded} />
       </SheetContent>
     </Sheet>
   );
