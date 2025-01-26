@@ -121,6 +121,7 @@ const Index = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[100px]">Poster</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Release Date</TableHead>
@@ -134,6 +135,13 @@ const Index = () => {
                   className="cursor-pointer hover:bg-accent"
                   onClick={() => setSelectedMovieId(userMovie.movie_id)}
                 >
+                  <TableCell>
+                    <img
+                      src={userMovie.movies.poster_url || "https://images.unsplash.com/photo-1485827404703-89b55fcc595e"}
+                      alt={userMovie.movies.title}
+                      className="w-[60px] h-[90px] rounded-sm object-cover"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{userMovie.movies.title}</TableCell>
                   <TableCell>{userMovie.movies.imdb_rating || 'N/A'}</TableCell>
                   <TableCell>
