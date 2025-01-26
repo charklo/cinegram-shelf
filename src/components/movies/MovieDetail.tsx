@@ -26,13 +26,23 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
   useEffect(() => {
     const fetchMovieAndReviews = async () => {
       try {
+        // First, get the movie data from Supabase
         const { data: movieData, error: movieError } = await supabase
           .from('movies')
           .select('*')
           .eq('id', movieId)
           .maybeSingle();
 
-        if (movieError) throw movieError;
+        if (movieError) {
+          console.error('Error fetching movie:', movieError);
+          toast({
+            title: "Error",
+            description: "Failed to load movie data",
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
         
         if (movieData) {
           // Get TMDB API key from Edge Function
@@ -45,64 +55,76 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
               description: "Failed to get API key",
               variant: "destructive"
             });
+            setMovie(movieData); // Still show the movie with available data
+            setLoading(false);
             return;
           }
 
-          // Try to fetch French details first
-          const frResponse = await fetch(
-            `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=fr-FR`
-          );
-          
-          let tmdbData;
-          
-          if (frResponse.ok) {
-            tmdbData = await frResponse.json();
-            // If overview is empty in French, fetch English version
-            if (!tmdbData.overview) {
+          try {
+            // Try to fetch French details first
+            const frResponse = await fetch(
+              `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=fr-FR`
+            );
+            
+            let tmdbData;
+            
+            if (frResponse.ok) {
+              tmdbData = await frResponse.json();
+              // If overview is empty in French, fetch English version
+              if (!tmdbData.overview) {
+                const enResponse = await fetch(
+                  `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
+                );
+                if (enResponse.ok) {
+                  tmdbData = await enResponse.json();
+                }
+              }
+            } else {
+              // Fallback to English if French request fails
               const enResponse = await fetch(
                 `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
               );
-              if (enResponse.ok) {
-                tmdbData = await enResponse.json();
+              if (!enResponse.ok) {
+                throw new Error('Failed to fetch movie details from TMDB');
+              }
+              tmdbData = await enResponse.json();
+            }
+            
+            // Update movie data with TMDB details
+            const updatedMovie = {
+              ...movieData,
+              overview: tmdbData.overview || movieData.overview,
+              movie_cast: tmdbData.credits?.cast?.map((actor: any) => ({
+                name: actor.name,
+                character: actor.character
+              })) || movieData.movie_cast,
+              director: tmdbData.credits?.crew?.find((person: any) => person.job === 'Director')?.name || movieData.director
+            };
+
+            setMovie(updatedMovie);
+
+            // Update the movie in Supabase if needed
+            if (!movieData.overview || !movieData.movie_cast) {
+              const { error: updateError } = await supabase
+                .from('movies')
+                .update({
+                  overview: updatedMovie.overview,
+                  movie_cast: updatedMovie.movie_cast,
+                  director: updatedMovie.director
+                })
+                .eq('id', movieId);
+
+              if (updateError) {
+                console.error('Error updating movie:', updateError);
               }
             }
-          } else {
-            // Fallback to English if French request fails
-            const enResponse = await fetch(
-              `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
-            );
-            if (!enResponse.ok) {
-              throw new Error('Failed to fetch movie details from TMDB');
-            }
-            tmdbData = await enResponse.json();
+          } catch (tmdbError) {
+            console.error('Error fetching TMDB data:', tmdbError);
+            setMovie(movieData); // Still show the movie with available data
           }
-          
-          // Update movie data with TMDB details
-          const updatedMovie = {
-            ...movieData,
-            overview: tmdbData.overview || movieData.overview,
-            movie_cast: tmdbData.credits?.cast?.map((actor: any) => ({
-              name: actor.name,
-              character: actor.character
-            })) || movieData.movie_cast,
-            director: tmdbData.credits?.crew?.find((person: any) => person.job === 'Director')?.name || movieData.director
-          };
-
-          // Update the movie in Supabase if needed
-          if (!movieData.overview || !movieData.movie_cast) {
-            await supabase
-              .from('movies')
-              .update({
-                overview: updatedMovie.overview,
-                movie_cast: updatedMovie.movie_cast,
-                director: updatedMovie.director
-              })
-              .eq('id', movieId);
-          }
-
-          setMovie(updatedMovie);
         }
 
+        // Fetch user rating if user is logged in
         if (user) {
           const { data: userMovieData } = await supabase
             .from('user_movies')
@@ -116,6 +138,7 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
           }
         }
 
+        // Fetch reviews
         const { data: reviewsData, error: reviewsError } = await supabase
           .from('movie_reviews')
           .select(`
@@ -125,8 +148,16 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
           .eq('movie_id', movieId)
           .order('created_at', { ascending: false });
 
-        if (reviewsError) throw reviewsError;
-        setReviews(reviewsData || []);
+        if (reviewsError) {
+          console.error('Error fetching reviews:', reviewsError);
+          toast({
+            title: "Error",
+            description: "Failed to load reviews",
+            variant: "destructive"
+          });
+        } else {
+          setReviews(reviewsData || []);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
@@ -193,74 +224,60 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-background p-6">
-          <div className="flex justify-center items-center h-40">
-            Loading...
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!movie) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-background p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-3xl font-bold mb-2">Movie not found</h2>
-            <button onClick={onClose}>×</button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  const averageRating = reviews.length > 0
-    ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / reviews.length
-    : 0;
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-background p-6">
-        <MovieHeader
-          title={movie.title}
-          releaseYear={new Date(movie.release_date).getFullYear().toString()}
-          duration={movie.duration}
-          userRating={userRating}
-          averageRating={averageRating}
-          imdbRating={movie.imdb_rating}
-          onClose={onClose}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-1">
-            <MoviePoster
-              posterUrl={movie.poster_url}
+        {loading ? (
+          <div className="flex justify-center items-center h-40">
+            <p className="text-lg">Loading movie details...</p>
+          </div>
+        ) : !movie ? (
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-3xl font-bold mb-2">Movie not found</h2>
+            <button onClick={onClose} className="text-2xl">&times;</button>
+          </div>
+        ) : (
+          <>
+            <MovieHeader
               title={movie.title}
-              director={movie.director}
+              releaseYear={new Date(movie.release_date).getFullYear().toString()}
+              duration={movie.duration}
+              userRating={userRating}
+              averageRating={reviews.length > 0
+                ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / reviews.length
+                : 0}
+              imdbRating={movie.imdb_rating}
+              onClose={onClose}
             />
-          </div>
 
-          <div className="md:col-span-2 space-y-8">
-            <MovieOverview
-              overview={movie.overview}
-              cast={movie.movie_cast}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="md:col-span-1">
+                <MoviePoster
+                  posterUrl={movie.poster_url}
+                  title={movie.title}
+                  director={movie.director}
+                />
+              </div>
 
-            <ReviewSection
-              user={user}
-              rating={rating}
-              setRating={setRating}
-              review={review}
-              setReview={setReview}
-              reviews={reviews}
-              onSubmitReview={handleSubmitReview}
-            />
-          </div>
-        </div>
+              <div className="md:col-span-2 space-y-8">
+                <MovieOverview
+                  overview={movie.overview}
+                  cast={movie.movie_cast}
+                />
+
+                <ReviewSection
+                  user={user}
+                  rating={rating}
+                  setRating={setRating}
+                  review={review}
+                  setReview={setReview}
+                  reviews={reviews}
+                  onSubmitReview={handleSubmitReview}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </Card>
     </div>
   );
