@@ -33,7 +33,44 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
           .maybeSingle();
 
         if (movieError) throw movieError;
-        if (movieData) setMovie(movieData);
+        
+        if (movieData) {
+          // Fetch additional movie details from TMDB
+          const response = await fetch(
+            `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${import.meta.env.VITE_TMDB_API_KEY}&append_to_response=credits`
+          );
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch movie details from TMDB');
+          }
+
+          const tmdbData = await response.json();
+          
+          // Update movie data with TMDB details
+          const updatedMovie = {
+            ...movieData,
+            overview: tmdbData.overview || movieData.overview,
+            movie_cast: tmdbData.credits?.cast?.map((actor: any) => ({
+              name: actor.name,
+              character: actor.character
+            })) || movieData.movie_cast,
+            director: tmdbData.credits?.crew?.find((person: any) => person.job === 'Director')?.name || movieData.director
+          };
+
+          // Update the movie in Supabase if needed
+          if (!movieData.overview || !movieData.movie_cast) {
+            await supabase
+              .from('movies')
+              .update({
+                overview: updatedMovie.overview,
+                movie_cast: updatedMovie.movie_cast,
+                director: updatedMovie.director
+              })
+              .eq('id', movieId);
+          }
+
+          setMovie(updatedMovie);
+        }
 
         if (user) {
           const { data: userMovieData } = await supabase
