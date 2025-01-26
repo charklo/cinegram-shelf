@@ -8,6 +8,8 @@ import { MoviePoster } from "./MoviePoster";
 import { MovieOverview } from "./MovieOverview";
 import { ReviewSection } from "./ReviewSection";
 import { useMovieData } from "@/hooks/useMovieData";
+import { Button } from "@/components/ui/button";
+import { Trash } from "lucide-react";
 
 interface MovieDetailContainerProps {
   movieId: string;
@@ -20,6 +22,33 @@ export const MovieDetailContainer = ({ movieId, onClose }: MovieDetailContainerP
   const { movie, reviews, loading, userRating } = useMovieData(movieId, user);
   const [review, setReview] = useState("");
   const [rating, setRating] = useState(0);
+
+  const handleDelete = async () => {
+    if (!user || !movie) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_movies')
+        .delete()
+        .eq('movie_id', movie.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Movie removed from your watchlist"
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error removing movie:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove movie from your watchlist",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleSubmitReview = async () => {
     if (!user) {
@@ -95,17 +124,27 @@ export const MovieDetailContainer = ({ movieId, onClose }: MovieDetailContainerP
           </div>
         ) : (
           <>
-            <MovieHeader
-              title={movie.title}
-              releaseYear={new Date(movie.release_date).getFullYear().toString()}
-              duration={movie.duration}
-              userRating={userRating}
-              averageRating={reviews.length > 0
-                ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / reviews.length
-                : 0}
-              imdbRating={movie.imdb_rating}
-              onClose={onClose}
-            />
+            <div className="flex justify-between items-start mb-6">
+              <MovieHeader
+                title={movie.title}
+                releaseYear={new Date(movie.release_date).getFullYear().toString()}
+                duration={movie.duration}
+                userRating={userRating}
+                averageRating={reviews.length > 0
+                  ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / reviews.length
+                  : 0}
+                imdbRating={movie.imdb_rating}
+                onClose={onClose}
+              />
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={handleDelete}
+                className="ml-4"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="md:col-span-1">

@@ -22,9 +22,10 @@ export const MovieListView = ({ movies, onMovieClick, isLoading }: MovieListView
           <TableHead className="w-[100px]">Poster</TableHead>
           <TableHead>Title</TableHead>
           <TableHead>Rating</TableHead>
+          <TableHead>Your Rating</TableHead>
           <TableHead>Release Date</TableHead>
           <TableHead>Duration</TableHead>
-          <TableHead className="max-w-[300px]">Synopsis</TableHead>
+          <TableHead className="max-w-[300px]">Your Review</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -43,6 +44,7 @@ export const MovieListView = ({ movies, onMovieClick, isLoading }: MovieListView
             </TableCell>
             <TableCell className="font-medium">{userMovie.movies.title}</TableCell>
             <TableCell>{userMovie.movies.imdb_rating || 'N/A'}</TableCell>
+            <TableCell>{userMovie.user_rating || 'N/A'}</TableCell>
             <TableCell>
               {userMovie.movies.release_date
                 ? new Date(userMovie.movies.release_date).toLocaleDateString()
@@ -55,7 +57,7 @@ export const MovieListView = ({ movies, onMovieClick, isLoading }: MovieListView
             </TableCell>
             <TableCell className="max-w-[300px]">
               <p className="line-clamp-2 text-sm text-muted-foreground">
-                {userMovie.movies.overview || 'No synopsis available'}
+                {userMovie.comment || 'No review yet'}
               </p>
             </TableCell>
           </TableRow>
