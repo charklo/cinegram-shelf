@@ -28,14 +28,28 @@ const Auth = () => {
           email,
           password,
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message === "Invalid login credentials") {
+            toast.error("Invalid email or password. Please try again or sign up if you don't have an account.");
+          } else {
+            toast.error(error.message);
+          }
+        }
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          },
         });
-        if (error) throw error;
-        toast.success("Check your email for the confirmation link!");
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success("Check your email for the confirmation link!");
+          // Switch to login view after successful signup
+          setIsLogin(true);
+        }
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -66,6 +80,7 @@ const Auth = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="glass"
               required
+              disabled={loading}
             />
             <Input
               type="password"
@@ -74,11 +89,13 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="glass"
               required
+              disabled={loading}
+              minLength={6}
             />
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {isLogin ? "Sign In" : "Sign Up"}
+              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
             <Button
               type="button"
