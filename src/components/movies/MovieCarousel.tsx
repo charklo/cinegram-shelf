@@ -1,24 +1,30 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MovieDetail } from "./MovieDetail";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Movie {
   id: number;
   title: string;
   poster_path: string;
   vote_average: number;
+  overview?: string;
+  release_date?: string;
 }
 
 export const MovieCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(2);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: trendingMovies, isLoading } = useQuery({
     queryKey: ["trendingMovies"],
@@ -51,6 +57,70 @@ export const MovieCarousel = () => {
       }
     },
   });
+
+  const handleAddToWatchlist = async (movie: Movie) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please sign in to add movies to your watchlist",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // First, check if the movie exists in our database
+      const { data: existingMovie, error: movieError } = await supabase
+        .from('movies')
+        .select('id')
+        .eq('imdb_id', movie.id.toString())
+        .single();
+
+      let movieId;
+
+      if (!existingMovie) {
+        // If movie doesn't exist, insert it
+        const { data: newMovie, error: insertError } = await supabase
+          .from('movies')
+          .insert({
+            title: movie.title,
+            imdb_id: movie.id.toString(),
+            poster_url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+            release_date: movie.release_date,
+            overview: movie.overview
+          })
+          .select('id')
+          .single();
+
+        if (insertError) throw insertError;
+        movieId = newMovie.id;
+      } else {
+        movieId = existingMovie.id;
+      }
+
+      // Add to user's watched movies
+      const { error: userMovieError } = await supabase
+        .from('user_movies')
+        .insert({
+          user_id: user.id,
+          movie_id: movieId
+        });
+
+      if (userMovieError) throw userMovieError;
+
+      toast({
+        title: "Success",
+        description: "Movie added to your watchlist"
+      });
+    } catch (error) {
+      console.error('Error adding movie to watchlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add movie to your watchlist",
+        variant: "destructive"
+      });
+    }
+  };
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % (trendingMovies?.length || 1));
@@ -103,55 +173,75 @@ export const MovieCarousel = () => {
   };
 
   return (
-    <div 
-      className="relative w-full h-[400px] overflow-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="flex items-center justify-center h-full gap-2 md:gap-4">
-        {getVisibleMovies().map((movie, index) => {
-          const isCentered = index === (isMobile ? 1 : 2);
-          const isAdjacent = isMobile ? 
-            (index === 0 || index === 2) : 
-            (index === 1 || index === 3);
-          
-          return (
-            <div
-              key={movie.id}
-              className={`transition-all duration-500 ease-in-out ${
-                isCentered
-                  ? "w-36 h-52 md:w-72 md:h-96 z-30 scale-110"
-                  : isAdjacent
-                  ? "w-28 h-40 md:w-56 md:h-80 z-20 opacity-80"
-                  : "w-24 h-36 md:w-48 md:h-72 z-10 opacity-60"
-              }`}
-            >
-              <img
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
-                className="w-full h-full object-cover rounded-lg shadow-xl"
-              />
-            </div>
-          );
-        })}
+    <>
+      <div 
+        className="relative w-full h-[400px] overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="flex items-center justify-center h-full gap-2 md:gap-4">
+          {getVisibleMovies().map((movie, index) => {
+            const isCentered = index === (isMobile ? 1 : 2);
+            const isAdjacent = isMobile ? 
+              (index === 0 || index === 2) : 
+              (index === 1 || index === 3);
+            
+            return (
+              <div
+                key={movie.id}
+                className={`relative transition-all duration-500 ease-in-out cursor-pointer group ${
+                  isCentered
+                    ? "w-36 h-52 md:w-72 md:h-96 z-30 scale-110"
+                    : isAdjacent
+                    ? "w-28 h-40 md:w-56 md:h-80 z-20 opacity-80"
+                    : "w-24 h-36 md:w-48 md:h-72 z-10 opacity-60"
+                }`}
+                onClick={() => setSelectedMovie(movie)}
+              >
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                  className="w-full h-full object-cover rounded-lg shadow-xl"
+                />
+                <Button
+                  size="icon"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToWatchlist(movie);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 z-40"
+          onClick={prevSlide}
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 z-40"
+          onClick={nextSlide}
+        >
+          <ChevronRight className="h-6 w-6" />
+        </Button>
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 z-40"
-        onClick={prevSlide}
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 z-40"
-        onClick={nextSlide}
-      >
-        <ChevronRight className="h-6 w-6" />
-      </Button>
-    </div>
+
+      {selectedMovie && (
+        <MovieDetail
+          movieId={selectedMovie.id.toString()}
+          onClose={() => setSelectedMovie(null)}
+        />
+      )}
+    </>
   );
 };
