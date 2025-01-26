@@ -34,7 +34,8 @@ const Index = () => {
             *,
             movies (*)
           `)
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }); // Sort by created_at in descending order
 
         if (error) throw error;
         setWatchedMovies(data || []);
@@ -68,7 +69,7 @@ const Index = () => {
   };
 
   const handleMovieAdded = (newUserMovie: any) => {
-    setWatchedMovies(prev => [...prev, newUserMovie]);
+    setWatchedMovies(prev => [newUserMovie, ...prev]); // Add new movie at the beginning
   };
 
   if (authLoading) {
