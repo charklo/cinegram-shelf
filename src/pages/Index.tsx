@@ -126,6 +126,7 @@ const Index = () => {
                 <TableHead>Rating</TableHead>
                 <TableHead>Release Date</TableHead>
                 <TableHead>Duration</TableHead>
+                <TableHead className="max-w-[300px]">Synopsis</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -153,6 +154,11 @@ const Index = () => {
                     {userMovie.movies.duration
                       ? `${userMovie.movies.duration} min`
                       : 'N/A'}
+                  </TableCell>
+                  <TableCell className="max-w-[300px]">
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                      {userMovie.movies.overview || 'No synopsis available'}
+                    </p>
                   </TableCell>
                 </TableRow>
               ))}
