@@ -26,11 +26,11 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
   useEffect(() => {
     const fetchMovieAndReviews = async () => {
       try {
-        // First, get the movie data from Supabase
+        // First, get the movie data from Supabase using imdb_id
         const { data: movieData, error: movieError } = await supabase
           .from('movies')
           .select('*')
-          .eq('id', movieId)
+          .eq('imdb_id', movieId)
           .maybeSingle();
 
         if (movieError) {
@@ -55,7 +55,7 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
               description: "Failed to get API key",
               variant: "destructive"
             });
-            setMovie(movieData); // Still show the movie with available data
+            setMovie(movieData);
             setLoading(false);
             return;
           }
@@ -63,7 +63,7 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
           try {
             // Try to fetch French details first
             const frResponse = await fetch(
-              `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=fr-FR`
+              `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=fr-FR`
             );
             
             let tmdbData;
@@ -73,7 +73,7 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
               // If overview is empty in French, fetch English version
               if (!tmdbData.overview) {
                 const enResponse = await fetch(
-                  `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
+                  `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
                 );
                 if (enResponse.ok) {
                   tmdbData = await enResponse.json();
@@ -82,7 +82,7 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
             } else {
               // Fallback to English if French request fails
               const enResponse = await fetch(
-                `https://api.themoviedb.org/3/movie/${movieData.imdb_id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
+                `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=en-US`
               );
               if (!enResponse.ok) {
                 throw new Error('Failed to fetch movie details from TMDB');
@@ -112,7 +112,7 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
                   movie_cast: updatedMovie.movie_cast,
                   director: updatedMovie.director
                 })
-                .eq('id', movieId);
+                .eq('id', movieData.id);
 
               if (updateError) {
                 console.error('Error updating movie:', updateError);
@@ -125,11 +125,11 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
         }
 
         // Fetch user rating if user is logged in
-        if (user) {
+        if (user && movieData) {
           const { data: userMovieData } = await supabase
             .from('user_movies')
             .select('user_rating')
-            .eq('movie_id', movieId)
+            .eq('movie_id', movieData.id)
             .eq('user_id', user.id)
             .maybeSingle();
 
@@ -139,24 +139,26 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
         }
 
         // Fetch reviews
-        const { data: reviewsData, error: reviewsError } = await supabase
-          .from('movie_reviews')
-          .select(`
-            *,
-            profiles (*)
-          `)
-          .eq('movie_id', movieId)
-          .order('created_at', { ascending: false });
+        if (movieData) {
+          const { data: reviewsData, error: reviewsError } = await supabase
+            .from('movie_reviews')
+            .select(`
+              *,
+              profiles (*)
+            `)
+            .eq('movie_id', movieData.id)
+            .order('created_at', { ascending: false });
 
-        if (reviewsError) {
-          console.error('Error fetching reviews:', reviewsError);
-          toast({
-            title: "Error",
-            description: "Failed to load reviews",
-            variant: "destructive"
-          });
-        } else {
-          setReviews(reviewsData || []);
+          if (reviewsError) {
+            console.error('Error fetching reviews:', reviewsError);
+            toast({
+              title: "Error",
+              description: "Failed to load reviews",
+              variant: "destructive"
+            });
+          } else {
+            setReviews(reviewsData || []);
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -183,11 +185,20 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
       return;
     }
     
+    if (!movie) {
+      toast({
+        title: "Error",
+        description: "Movie data not available",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('movie_reviews')
         .insert({
-          movie_id: movieId,
+          movie_id: movie.id,
           user_id: user.id,
           rating,
           comment: review
@@ -209,7 +220,7 @@ export const MovieDetail = ({ movieId, onClose }: MovieDetailProps) => {
           *,
           profiles (*)
         `)
-        .eq('movie_id', movieId)
+        .eq('movie_id', movie.id)
         .order('created_at', { ascending: false });
 
       if (reviewsError) throw reviewsError;
