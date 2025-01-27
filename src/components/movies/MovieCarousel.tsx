@@ -74,7 +74,7 @@ export const MovieCarousel = () => {
         .from('movies')
         .select('id')
         .eq('imdb_id', movie.id.toString())
-        .single();
+        .maybeSingle();  // Changed from .single() to .maybeSingle()
 
       let movieId;
 
