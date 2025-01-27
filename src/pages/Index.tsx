@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { MovieCarousel } from "@/components/movies/MovieCarousel";
 import { MovieDetail } from "@/components/movies/MovieDetail";
+import { TvShowDetail } from "@/components/tv-shows/TvShowDetail";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { AddMovieButton } from "@/components/movies/AddMovieButton";
@@ -18,6 +19,7 @@ const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [selectedMovieId, setSelectedMovieId] = useState<string | null>(null);
+  const [selectedTvShowId, setSelectedTvShowId] = useState<string | null>(null);
   const [watchedMovies, setWatchedMovies] = useState<any[]>([]);
   const [watchedTvShows, setWatchedTvShows] = useState<any[]>([]);
   const [filteredMovies, setFilteredMovies] = useState<any[]>([]);
@@ -103,6 +105,12 @@ const Index = () => {
     setSelectedMovieId(null);
   };
 
+  const handleTvShowRemoved = (tvShowId: string) => {
+    setWatchedTvShows(prev => prev.filter(show => show.tv_shows.tmdb_id !== tvShowId));
+    setFilteredTvShows(prev => prev.filter(show => show.tv_shows.tmdb_id !== tvShowId));
+    setSelectedTvShowId(null);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -172,7 +180,7 @@ const Index = () => {
                       imdb_rating: show.tv_shows.tmdb_rating
                     }
                   }))}
-                  onMovieClick={(id) => {/* TODO: Implement TV show detail view */}}
+                  onMovieClick={setSelectedTvShowId}
                   isLoading={loadingTvShows}
                 />
               ) : (
@@ -185,7 +193,7 @@ const Index = () => {
                       imdb_rating: show.tv_shows.tmdb_rating
                     }
                   }))}
-                  onMovieClick={(id) => {/* TODO: Implement TV show detail view */}}
+                  onMovieClick={setSelectedTvShowId}
                   isLoading={loadingTvShows}
                 />
               )}
@@ -198,6 +206,14 @@ const Index = () => {
             movieId={selectedMovieId}
             onClose={() => setSelectedMovieId(null)}
             onMovieRemoved={handleMovieRemoved}
+          />
+        )}
+
+        {selectedTvShowId && (
+          <TvShowDetail
+            tvShowId={selectedTvShowId}
+            onClose={() => setSelectedTvShowId(null)}
+            onTvShowRemoved={handleTvShowRemoved}
           />
         )}
 
