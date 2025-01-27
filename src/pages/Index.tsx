@@ -35,7 +35,7 @@ const Index = () => {
             movies (*)
           `)
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false }); // Sort by created_at in descending order
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
         setWatchedMovies(data || []);
@@ -69,7 +69,13 @@ const Index = () => {
   };
 
   const handleMovieAdded = (newUserMovie: any) => {
-    setWatchedMovies(prev => [newUserMovie, ...prev]); // Add new movie at the beginning
+    setWatchedMovies(prev => [newUserMovie, ...prev]);
+  };
+
+  const handleMovieRemoved = (movieId: string) => {
+    setWatchedMovies(prev => prev.filter(movie => movie.movies.imdb_id !== movieId));
+    setFilteredMovies(prev => prev.filter(movie => movie.movies.imdb_id !== movieId));
+    setSelectedMovieId(null);
   };
 
   if (authLoading) {
@@ -131,6 +137,7 @@ const Index = () => {
         <MovieDetail
           movieId={selectedMovieId}
           onClose={() => setSelectedMovieId(null)}
+          onMovieRemoved={handleMovieRemoved}
         />
       )}
 

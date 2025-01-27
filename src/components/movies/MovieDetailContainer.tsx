@@ -14,9 +14,10 @@ import { Trash } from "lucide-react";
 interface MovieDetailContainerProps {
   movieId: string;
   onClose: () => void;
+  onMovieRemoved: (movieId: string) => void;
 }
 
-export const MovieDetailContainer = ({ movieId, onClose }: MovieDetailContainerProps) => {
+export const MovieDetailContainer = ({ movieId, onClose, onMovieRemoved }: MovieDetailContainerProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { movie, reviews, loading, userRating } = useMovieData(movieId, user);
@@ -39,7 +40,8 @@ export const MovieDetailContainer = ({ movieId, onClose }: MovieDetailContainerP
         title: "Success",
         description: "Movie removed from your watchlist"
       });
-      onClose();
+      
+      onMovieRemoved(movieId);
     } catch (error) {
       console.error('Error removing movie:', error);
       toast({
