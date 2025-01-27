@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetTabs, SheetTabsList, SheetTabsTrigger, SheetTabsContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MovieSearch } from "./MovieSearch";
 import { TvShowSearch } from "../tv-shows/TvShowSearch";
 
@@ -25,18 +26,18 @@ export const AddMovieButton = ({ onMovieAdded, onTvShowAdded }: AddMovieButtonPr
           <SheetTitle>Add to your watchlist</SheetTitle>
         </SheetHeader>
         <div className="mt-4">
-          <SheetTabs defaultValue="movies">
-            <SheetTabsList className="grid w-full grid-cols-2">
-              <SheetTabsTrigger value="movies">Movies</SheetTabsTrigger>
-              <SheetTabsTrigger value="tvshows">TV Shows</SheetTabsTrigger>
-            </SheetTabsList>
-            <SheetTabsContent value="movies" className="mt-4">
+          <Tabs defaultValue="movies">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="movies">Movies</TabsTrigger>
+              <TabsTrigger value="tvshows">TV Shows</TabsTrigger>
+            </TabsList>
+            <TabsContent value="movies" className="mt-4">
               <MovieSearch onMovieAdded={onMovieAdded} />
-            </SheetTabsContent>
-            <SheetTabsContent value="tvshows" className="mt-4">
+            </TabsContent>
+            <TabsContent value="tvshows" className="mt-4">
               <TvShowSearch onTvShowAdded={onTvShowAdded} />
-            </SheetTabsContent>
-          </SheetTabs>
+            </TabsContent>
+          </Tabs>
         </div>
       </SheetContent>
     </Sheet>
