@@ -3,7 +3,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { MovieCarousel } from "@/components/movies/MovieCarousel";
 import { MovieDetail } from "@/components/movies/MovieDetail";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { AddMovieButton } from "@/components/movies/AddMovieButton";
@@ -12,6 +11,7 @@ import { MovieListView } from "@/components/movies/MovieListView";
 import { ViewToggle } from "@/components/movies/ViewToggle";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { Navigation } from "@/components/layout/Navigation";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
@@ -91,58 +91,55 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 space-y-8">
-      <div className="flex justify-end">
-        <Button onClick={handleSignOut} variant="ghost">
-          Sign Out
-        </Button>
-      </div>
-      
-      <MovieCarousel />
-      
-      <section>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <h2 className="text-2xl font-bold">Your Watched Movies</h2>
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative flex-1 md:flex-initial">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search movies..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-full md:w-[200px]"
-              />
+    <>
+      <Navigation />
+      <div className="min-h-screen pt-16 p-4 space-y-8">
+        <MovieCarousel />
+        
+        <section>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <h2 className="text-2xl font-bold">Your Watched Movies</h2>
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <div className="relative flex-1 md:flex-initial">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  type="text"
+                  placeholder="Search movies..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-full md:w-[200px]"
+                />
+              </div>
+              <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
             </div>
-            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           </div>
-        </div>
 
-        {viewMode === 'grid' ? (
-          <MovieGridView
-            movies={filteredMovies}
-            onMovieClick={setSelectedMovieId}
-            isLoading={loadingMovies}
-          />
-        ) : (
-          <MovieListView
-            movies={filteredMovies}
-            onMovieClick={setSelectedMovieId}
-            isLoading={loadingMovies}
+          {viewMode === 'grid' ? (
+            <MovieGridView
+              movies={filteredMovies}
+              onMovieClick={setSelectedMovieId}
+              isLoading={loadingMovies}
+            />
+          ) : (
+            <MovieListView
+              movies={filteredMovies}
+              onMovieClick={setSelectedMovieId}
+              isLoading={loadingMovies}
+            />
+          )}
+        </section>
+
+        {selectedMovieId && (
+          <MovieDetail
+            movieId={selectedMovieId}
+            onClose={() => setSelectedMovieId(null)}
+            onMovieRemoved={handleMovieRemoved}
           />
         )}
-      </section>
 
-      {selectedMovieId && (
-        <MovieDetail
-          movieId={selectedMovieId}
-          onClose={() => setSelectedMovieId(null)}
-          onMovieRemoved={handleMovieRemoved}
-        />
-      )}
-
-      <AddMovieButton onMovieAdded={handleMovieAdded} />
-    </div>
+        <AddMovieButton onMovieAdded={handleMovieAdded} />
+      </div>
+    </>
   );
 };
 

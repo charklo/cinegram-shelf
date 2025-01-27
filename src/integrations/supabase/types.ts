@@ -132,6 +132,114 @@ export type Database = {
         }
         Relationships: []
       }
+      tv_show_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          tv_show_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          tv_show_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          tv_show_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tv_show_reviews_tv_show_id_fkey"
+            columns: ["tv_show_id"]
+            isOneToOne: false
+            referencedRelation: "tv_shows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_show_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tv_shows: {
+        Row: {
+          country: string | null
+          created_at: string
+          creator: string | null
+          duration: number | null
+          first_air_date: string | null
+          genres: string[] | null
+          id: string
+          language: string | null
+          network: string | null
+          number_of_episodes: number | null
+          number_of_seasons: number | null
+          overview: string | null
+          poster_url: string | null
+          show_cast: Json | null
+          status: string | null
+          title: string
+          tmdb_id: string
+          tmdb_rating: number | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          creator?: string | null
+          duration?: number | null
+          first_air_date?: string | null
+          genres?: string[] | null
+          id?: string
+          language?: string | null
+          network?: string | null
+          number_of_episodes?: number | null
+          number_of_seasons?: number | null
+          overview?: string | null
+          poster_url?: string | null
+          show_cast?: Json | null
+          status?: string | null
+          title: string
+          tmdb_id: string
+          tmdb_rating?: number | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          creator?: string | null
+          duration?: number | null
+          first_air_date?: string | null
+          genres?: string[] | null
+          id?: string
+          language?: string | null
+          network?: string | null
+          number_of_episodes?: number | null
+          number_of_seasons?: number | null
+          overview?: string | null
+          poster_url?: string | null
+          show_cast?: Json | null
+          status?: string | null
+          title?: string
+          tmdb_id?: string
+          tmdb_rating?: number | null
+        }
+        Relationships: []
+      }
       user_movies: {
         Row: {
           created_at: string
@@ -164,6 +272,45 @@ export type Database = {
           },
           {
             foreignKeyName: "user_movies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_tv_shows: {
+        Row: {
+          created_at: string
+          tv_show_id: string
+          updated_at: string
+          user_id: string
+          user_rating: number | null
+        }
+        Insert: {
+          created_at?: string
+          tv_show_id: string
+          updated_at?: string
+          user_id: string
+          user_rating?: number | null
+        }
+        Update: {
+          created_at?: string
+          tv_show_id?: string
+          updated_at?: string
+          user_id?: string
+          user_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tv_shows_tv_show_id_fkey"
+            columns: ["tv_show_id"]
+            isOneToOne: false
+            referencedRelation: "tv_shows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_tv_shows_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
