@@ -240,6 +240,7 @@ export const MovieCarousel = () => {
         <MovieDetail
           movieId={selectedMovie.id.toString()}
           onClose={() => setSelectedMovie(null)}
+          onMovieRemoved={() => setSelectedMovie(null)}
         />
       )}
     </>
