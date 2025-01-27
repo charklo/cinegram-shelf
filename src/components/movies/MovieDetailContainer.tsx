@@ -124,27 +124,17 @@ export const MovieDetailContainer = ({ movieId, onClose }: MovieDetailContainerP
           </div>
         ) : (
           <>
-            <div className="flex justify-between items-start mb-6">
-              <MovieHeader
-                title={movie.title}
-                releaseYear={new Date(movie.release_date).getFullYear().toString()}
-                duration={movie.duration}
-                userRating={userRating}
-                averageRating={reviews.length > 0
-                  ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / reviews.length
-                  : 0}
-                imdbRating={movie.imdb_rating}
-                onClose={onClose}
-              />
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={handleDelete}
-                className="ml-4"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
+            <MovieHeader
+              title={movie.title}
+              releaseYear={new Date(movie.release_date).getFullYear().toString()}
+              duration={movie.duration}
+              userRating={userRating}
+              averageRating={reviews.length > 0
+                ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / reviews.length
+                : 0}
+              imdbRating={movie.imdb_rating}
+              onClose={onClose}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="md:col-span-1">
@@ -170,6 +160,17 @@ export const MovieDetailContainer = ({ movieId, onClose }: MovieDetailContainerP
                   reviews={reviews}
                   onSubmitReview={handleSubmitReview}
                 />
+
+                {user && (
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    <Trash className="h-4 w-4" />
+                    Remove from Watchlist
+                  </Button>
+                )}
               </div>
             </div>
           </>
