@@ -282,6 +282,7 @@ export type Database = {
       user_tv_shows: {
         Row: {
           created_at: string
+          seasons_watched: number[] | null
           tv_show_id: string
           updated_at: string
           user_id: string
@@ -289,6 +290,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          seasons_watched?: number[] | null
           tv_show_id: string
           updated_at?: string
           user_id: string
@@ -296,6 +298,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          seasons_watched?: number[] | null
           tv_show_id?: string
           updated_at?: string
           user_id?: string
