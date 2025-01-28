@@ -132,6 +132,7 @@ export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: Tv
                   posterUrl={tvShow.poster_url}
                   title={tvShow.title}
                   creator={tvShow.creator}
+                  isCompleted={tvShow.status?.toLowerCase() === 'ended'}
                 />
               </div>
 
@@ -143,6 +144,8 @@ export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: Tv
                   numberOfEpisodes={tvShow.number_of_episodes}
                   status={tvShow.status}
                   network={tvShow.network}
+                  userId={user?.id}
+                  tvShowId={tvShow.id}
                 />
 
                 <ReviewSection
