@@ -8,6 +8,7 @@ export const useTvShowData = (tvShowId: string, user: User | null) => {
   const [tvShow, setTvShow] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [userRating, setUserRating] = useState<number | null>(null);
+  const [seasonsWatched, setSeasonsWatched] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,17 +35,18 @@ export const useTvShowData = (tvShowId: string, user: User | null) => {
         if (tvShowData) {
           setTvShow(tvShowData);
 
-          // Fetch user rating if user is logged in
+          // Fetch user rating and watched seasons if user is logged in
           if (user) {
             const { data: userTvShowData } = await supabase
               .from('user_tv_shows')
-              .select('user_rating')
+              .select('user_rating, seasons_watched')
               .eq('tv_show_id', tvShowData.id)
               .eq('user_id', user.id)
               .maybeSingle();
 
             if (userTvShowData) {
               setUserRating(userTvShowData.user_rating);
+              setSeasonsWatched(userTvShowData.seasons_watched || []);
             }
           }
 
@@ -84,5 +86,5 @@ export const useTvShowData = (tvShowId: string, user: User | null) => {
     fetchTvShowAndReviews();
   }, [tvShowId, user, toast]);
 
-  return { tvShow, reviews, userRating, loading };
+  return { tvShow, reviews, userRating, seasonsWatched, loading };
 };

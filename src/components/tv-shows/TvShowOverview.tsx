@@ -2,7 +2,7 @@ import { Check, Play, Star, Tv } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -20,6 +20,7 @@ interface TvShowOverviewProps {
   network?: string;
   userId?: string;
   tvShowId: string;
+  seasonsWatched?: number[];
 }
 
 export const TvShowOverview = ({ 
@@ -30,15 +31,23 @@ export const TvShowOverview = ({
   status,
   network,
   userId,
-  tvShowId
+  tvShowId,
+  seasonsWatched = []
 }: TvShowOverviewProps) => {
   const { toast } = useToast();
   const [seasons, setSeasons] = useState<Season[]>(
     Array.from({ length: numberOfSeasons }, (_, i) => ({
       number: i + 1,
-      watched: false
+      watched: seasonsWatched.includes(i + 1)
     }))
   );
+
+  useEffect(() => {
+    setSeasons(Array.from({ length: numberOfSeasons }, (_, i) => ({
+      number: i + 1,
+      watched: seasonsWatched.includes(i + 1)
+    })));
+  }, [numberOfSeasons, seasonsWatched]);
 
   const handleSeasonToggle = async (seasonNumber: number) => {
     if (!userId) {
@@ -83,7 +92,6 @@ export const TvShowOverview = ({
     }
   };
 
-  const allSeasonsWatched = seasons.every(season => season.watched);
   const showStatus = status?.toLowerCase() === 'ended' ? 'Completed' : 'In Progress';
 
   return (

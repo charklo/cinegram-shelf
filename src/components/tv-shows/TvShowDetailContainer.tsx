@@ -20,7 +20,7 @@ interface TvShowDetailContainerProps {
 export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: TvShowDetailContainerProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { tvShow, reviews, loading, userRating } = useTvShowData(tvShowId, user);
+  const { tvShow, reviews, loading, userRating, seasonsWatched } = useTvShowData(tvShowId, user);
   const [review, setReview] = useState("");
   const [rating, setRating] = useState(0);
 
@@ -131,8 +131,7 @@ export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: Tv
                 <TvShowPoster
                   posterUrl={tvShow.poster_url}
                   title={tvShow.title}
-                  creator={tvShow.creator}
-                  isCompleted={tvShow.status?.toLowerCase() === 'ended'}
+                  allSeasonsWatched={seasonsWatched?.length === tvShow.number_of_seasons}
                 />
               </div>
 
@@ -146,6 +145,7 @@ export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: Tv
                   network={tvShow.network}
                   userId={user?.id}
                   tvShowId={tvShow.id}
+                  seasonsWatched={seasonsWatched}
                 />
 
                 <ReviewSection
