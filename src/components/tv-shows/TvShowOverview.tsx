@@ -35,12 +35,53 @@ export const TvShowOverview = ({
   seasonsWatched = []
 }: TvShowOverviewProps) => {
   const { toast } = useToast();
+  const [frenchOverview, setFrenchOverview] = useState<string>("");
   const [seasons, setSeasons] = useState<Season[]>(
     Array.from({ length: numberOfSeasons }, (_, i) => ({
       number: i + 1,
       watched: seasonsWatched.includes(i + 1)
     }))
   );
+
+  useEffect(() => {
+    const translateOverview = async () => {
+      try {
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-sonar-small-128k-online',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a translator. Translate the following text from English to French. Only respond with the translation, nothing else.'
+              },
+              {
+                role: 'user',
+                content: overview
+              }
+            ],
+            temperature: 0.2,
+          }),
+        });
+
+        if (!response.ok) throw new Error('Translation failed');
+        
+        const data = await response.json();
+        setFrenchOverview(data.choices[0].message.content);
+      } catch (error) {
+        console.error('Translation error:', error);
+        setFrenchOverview("Traduction non disponible");
+      }
+    };
+
+    if (overview) {
+      translateOverview();
+    }
+  }, [overview]);
 
   useEffect(() => {
     setSeasons(Array.from({ length: numberOfSeasons }, (_, i) => ({
@@ -67,7 +108,6 @@ export const TvShowOverview = ({
       );
       setSeasons(newSeasons);
 
-      // Update in database
       const { error } = await supabase
         .from('user_tv_shows')
         .upsert({
@@ -111,9 +151,21 @@ export const TvShowOverview = ({
         </Badge>
       </div>
 
-      <p className="text-muted-foreground leading-relaxed">
-        {overview || "No overview available."}
-      </p>
+      <div className="space-y-4">
+        <div>
+          <h4 className="font-semibold mb-2">Synopsis</h4>
+          <p className="text-muted-foreground leading-relaxed">
+            {overview || "No overview available."}
+          </p>
+        </div>
+        
+        <div>
+          <h4 className="font-semibold mb-2">Synopsis (Français)</h4>
+          <p className="text-muted-foreground leading-relaxed">
+            {frenchOverview || "Traduction en cours..."}
+          </p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         {numberOfSeasons > 0 && (
@@ -142,12 +194,42 @@ export const TvShowOverview = ({
         )}
       </div>
 
+      {cast && cast.length > 0 && (
+        <div>
+          <h3 className="text-2xl font-semibold mb-4">Cast</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {cast.map((actor) => (
+              <div key={actor.name} className="flex items-center gap-3 p-2 rounded-lg border bg-card">
+                <Avatar className="h-12 w-12">
+                  {actor.profile_path ? (
+                    <AvatarImage 
+                      src={`https://image.tmdb.org/t/p/w92${actor.profile_path}`} 
+                      alt={actor.name} 
+                    />
+                  ) : (
+                    <AvatarFallback>
+                      <Tv className="h-6 w-6" />
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <p className="font-medium text-sm">{actor.name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {numberOfSeasons > 0 && (
         <div>
-          <h3 className="text-2xl font-semibold mb-4">Seasons</h3>
+          <h3 className="text-2xl font-semibold mb-4">Track Seasons</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {seasons.map((season) => (
-              <div key={season.number} className="flex items-center space-x-2">
+              <div 
+                key={season.number} 
+                className="flex items-center space-x-2 p-3 rounded-lg border bg-card"
+              >
                 <Checkbox
                   id={`season-${season.number}`}
                   checked={season.watched}
@@ -155,35 +237,10 @@ export const TvShowOverview = ({
                 />
                 <label
                   htmlFor={`season-${season.number}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-medium leading-none cursor-pointer"
                 >
                   Season {season.number}
                 </label>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {cast && cast.length > 0 && (
-        <div>
-          <h3 className="text-2xl font-semibold mb-4">Cast</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {cast.map((actor) => (
-              <div key={actor.name} className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  {actor.profile_path ? (
-                    <AvatarImage 
-                      src={`https://image.tmdb.org/t/p/w45${actor.profile_path}`} 
-                      alt={actor.name} 
-                    />
-                  ) : (
-                    <AvatarFallback>
-                      <Tv className="h-4 w-4" />
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                <span className="text-sm">{actor.name}</span>
               </div>
             ))}
           </div>
