@@ -20,9 +20,9 @@ export const TvShowCast = ({ cast }: TvShowCastProps) => {
         {cast.map((actor) => (
           <div 
             key={actor.name} 
-            className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent transition-colors"
+            className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
           >
-            <Avatar className="h-14 w-14">
+            <Avatar className="h-16 w-16 border-2 border-primary">
               {actor.profile_path ? (
                 <AvatarImage 
                   src={`https://image.tmdb.org/t/p/w92${actor.profile_path}`} 
@@ -30,13 +30,13 @@ export const TvShowCast = ({ cast }: TvShowCastProps) => {
                   className="object-cover"
                 />
               ) : (
-                <AvatarFallback>
-                  <Tv className="h-6 w-6" />
+                <AvatarFallback className="bg-primary/10">
+                  <Tv className="h-8 w-8 text-primary" />
                 </AvatarFallback>
               )}
             </Avatar>
             <div>
-              <p className="font-medium text-sm leading-tight">{actor.name}</p>
+              <p className="font-medium text-base leading-tight">{actor.name}</p>
             </div>
           </div>
         ))}

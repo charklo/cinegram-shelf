@@ -85,11 +85,11 @@ export const TvShowSeasons = ({
               id={`season-${season.number}`}
               checked={season.watched}
               onCheckedChange={() => handleSeasonToggle(season.number)}
-              className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+              className="h-5 w-5 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
             />
             <label
               htmlFor={`season-${season.number}`}
-              className="text-sm font-medium leading-none cursor-pointer select-none"
+              className="text-base font-medium leading-none cursor-pointer select-none"
             >
               Season {season.number}
             </label>
