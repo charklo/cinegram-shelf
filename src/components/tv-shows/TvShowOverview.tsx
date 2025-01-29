@@ -34,20 +34,20 @@ export const TvShowOverview = ({
         <h3 className="text-2xl font-semibold mb-4">Overview</h3>
         <Badge 
           variant={showStatus === 'Completed' ? "default" : "secondary"}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 px-3 py-1"
         >
           {showStatus === 'Completed' ? (
-            <Star className="w-3 h-3" />
+            <Star className="w-4 h-4" />
           ) : (
-            <Play className="w-3 h-3" />
+            <Play className="w-4 h-4" />
           )}
           {showStatus}
         </Badge>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <h4 className="font-semibold mb-2">Synopsis</h4>
+      <div className="space-y-6">
+        <div className="bg-card rounded-lg p-6 border">
+          <h4 className="font-semibold mb-3 text-lg">Synopsis</h4>
           <p className="text-muted-foreground leading-relaxed">
             {overview || "No overview available."}
           </p>
@@ -56,40 +56,46 @@ export const TvShowOverview = ({
 
       <div className="grid grid-cols-2 gap-4">
         {numberOfSeasons > 0 && (
-          <div>
-            <h4 className="font-semibold mb-1">Seasons</h4>
+          <div className="bg-card rounded-lg p-4 border">
+            <h4 className="font-semibold mb-2">Seasons</h4>
             <p className="text-muted-foreground">{numberOfSeasons}</p>
           </div>
         )}
         {numberOfEpisodes && (
-          <div>
-            <h4 className="font-semibold mb-1">Episodes</h4>
+          <div className="bg-card rounded-lg p-4 border">
+            <h4 className="font-semibold mb-2">Episodes</h4>
             <p className="text-muted-foreground">{numberOfEpisodes}</p>
           </div>
         )}
         {status && (
-          <div>
-            <h4 className="font-semibold mb-1">Status</h4>
+          <div className="bg-card rounded-lg p-4 border">
+            <h4 className="font-semibold mb-2">Status</h4>
             <p className="text-muted-foreground">{status}</p>
           </div>
         )}
         {network && (
-          <div>
-            <h4 className="font-semibold mb-1">Network</h4>
+          <div className="bg-card rounded-lg p-4 border">
+            <h4 className="font-semibold mb-2">Network</h4>
             <p className="text-muted-foreground">{network}</p>
           </div>
         )}
       </div>
 
-      <TvShowCast cast={cast} />
+      {cast && cast.length > 0 && (
+        <div className="bg-card rounded-lg p-6 border">
+          <TvShowCast cast={cast} />
+        </div>
+      )}
 
       {numberOfSeasons > 0 && (
-        <TvShowSeasons
-          numberOfSeasons={numberOfSeasons}
-          seasonsWatched={seasonsWatched}
-          userId={userId}
-          tvShowId={tvShowId}
-        />
+        <div className="bg-card rounded-lg p-6 border">
+          <TvShowSeasons
+            numberOfSeasons={numberOfSeasons}
+            seasonsWatched={seasonsWatched}
+            userId={userId}
+            tvShowId={tvShowId}
+          />
+        </div>
       )}
     </div>
   );

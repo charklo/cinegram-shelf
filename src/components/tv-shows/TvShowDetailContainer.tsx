@@ -101,11 +101,11 @@ export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: Tv
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-background p-6">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-background p-8 shadow-xl rounded-xl">
         {loading ? (
           <div className="flex justify-center items-center h-40">
-            <p className="text-lg">Loading TV show details...</p>
+            <p className="text-lg animate-pulse">Loading TV show details...</p>
           </div>
         ) : !tvShow ? (
           <div className="flex justify-between items-start mb-6">
@@ -126,7 +126,7 @@ export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: Tv
               onClose={onClose}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
               <div className="md:col-span-1">
                 <TvShowPoster
                   posterUrl={tvShow.poster_url}
@@ -162,7 +162,7 @@ export const TvShowDetailContainer = ({ tvShowId, onClose, onTvShowRemoved }: Tv
                   <Button
                     variant="destructive"
                     onClick={handleDelete}
-                    className="w-full flex items-center justify-center gap-2"
+                    className="w-full flex items-center justify-center gap-2 mt-4"
                   >
                     <Trash className="h-4 w-4" />
                     Remove from Watchlist
