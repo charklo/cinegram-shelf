@@ -75,20 +75,21 @@ export const TvShowSeasons = ({
   return (
     <div>
       <h3 className="text-2xl font-semibold mb-4">Track Seasons</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {seasons.map((season) => (
           <div 
             key={season.number} 
-            className="flex items-center space-x-2 p-3 rounded-lg border bg-card"
+            className="flex items-center space-x-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
           >
             <Checkbox
               id={`season-${season.number}`}
               checked={season.watched}
               onCheckedChange={() => handleSeasonToggle(season.number)}
+              className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
             />
             <label
               htmlFor={`season-${season.number}`}
-              className="text-sm font-medium leading-none cursor-pointer"
+              className="text-sm font-medium leading-none cursor-pointer select-none"
             >
               Season {season.number}
             </label>
